@@ -34,3 +34,7 @@ An AI-powered document review tool that uses Claude to provide detailed feedback
 3. Run the setup:
    ```bash
    python setup.py
+
+4. Use the reviewer
+   ```bash
+   RunReviewer.bat
