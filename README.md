@@ -31,6 +31,6 @@ An AI-powered document review tool that uses Claude to provide detailed feedback
    ```bash
    pip install -r requirements.txt
 
-3.Run the setup:
+3. Run the setup:
    ```bash
    python setup.py
