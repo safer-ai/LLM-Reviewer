@@ -1,0 +1,26 @@
+api:
+  key: null
+  max_tokens: 4096
+  model: claude-3-7-sonnet-20250219
+  retry_attempts: 3
+  retry_delay: 2
+  temperature: 0.3
+batch:
+  pages_per_batch: 3
+document:
+  pages: null
+  path: C:/Users/ottqu/Documents/SaferAI/LLMReviewer/review/Using LLMs to perform
+    risk modelling expert elicitations.docx
+output:
+  path: C:\Users\ottqu\Documents\SaferAI\LLMReviewer\review\Using LLMs to perform
+    risk modelling expert elicitations_review_20250530_180202.json
+prompts:
+  pass1_review_prompt: prompts/pass1_review_prompt.txt
+  pass1_system_prompt: prompts/pass1_system_prompt.txt
+  pass2_review_prompt: prompts/pass2_review_prompt.txt
+  pass2_system_prompt: prompts/pass2_system_prompt.txt
+review:
+  chunk_overlap_words: 100
+  chunk_size_words: 700
+  enable_global_review: true
+  instructions: Focus on clarity, grammar, and consistency.

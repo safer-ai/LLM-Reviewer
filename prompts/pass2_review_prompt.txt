@@ -1,0 +1,16 @@
+The following is the full text of the document for a global review:
+--- FULL DOCUMENT TEXT START ---
+{full_document_text}
+--- FULL DOCUMENT TEXT END ---
+
+Here are some automatically extracted structural elements to guide your review:
+--- STRUCTURAL ELEMENTS START ---
+{structural_elements}
+--- STRUCTURAL ELEMENTS END ---
+
+Please perform a global review focusing on:
+1.  Overall consistency in style, tone, tense, and terminology.
+2.  Sequential numbering of figures, tables, and sections (based on the structural elements provided and your reading of the full text).
+3.  Logical flow and coherence between sections.
+4.  Any glaring omissions or major structural issues.
+Do NOT focus on minor, isolated sentence-level grammar unless it forms a pattern that affects overall understanding, as that was addressed in a prior review pass. Provide your findings as a clear report.

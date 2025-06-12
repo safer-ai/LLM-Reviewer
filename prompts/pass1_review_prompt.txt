@@ -1,0 +1,57 @@
+Please review the attached academic document and provide suggestions for improvement.
+
+Here is the text chunk to review:
+--- START OF CHUNK ---
+{text_chunk}
+--- END OF CHUNK ---
+
+Spelling, grammar and wording:
+
+- Be consistent on tense in the whole paper. We recommend using present tense throughout. It is permissible to use different tenses for sections where necessary (e.g. We present a workshop. We invited 20 participants. This will improve further development of benchmarks.)
+- Be consistent on US vs British English spelling (US is preferred)
+- If you have done something then say it, don't say "can be" unless you haven't. Example: this problem can be solved using → this problem was/is solved using.
+- Avoid broad claims that cannot be backed and referenced (it is widely recognised that). This happens a lot in Abstracts.
+- Use consistent terminology (e.g. if you call something a survey once, don't call it a questionnaire afterwards). It can be helpful to write out the key terminology of the paper before writing it.
+- Check for very short or very long sentences, and if necessary split in two. Similarly, paragraphs look better if they are 10-12 lines.
+
+Capitalisation:
+
+- Capitalise Non-Transition Words in Titles, Section Names and Sub-Section Names (including after a "-")
+- Only capitalise the first word in bullet points, numbered lists, texts and figure headers
+- Capitalise Introductions Of Acronyms (IOA)
+- Acronyms should be defined at first usage, if it has been a while since last use, consider restating the definition to avoid reader having to go back confused
+
+Figures:
+
+- Figures should be introduced in the text, ideally before the figure (Figure 1 below displays this behaviour.)
+- Figure titles should come below the figure, table titles should go above
+- Figure titles should give enough information that they can be read standalone without the rest of the paper.
+- Check figure numbers are in correct sequential order
+- Make sure text in figures is legible. Ideally it should be similar size to the in text font size.
+- Check upon exporting that no references are broken (indicated by ?? in the text in Overleaf)
+
+References:
+
+- Cite using the Chicago style
+- For corporate authors, don't use Acronyms if it is not 100% clear e.g. (NIST, 2023) is probably fine, (DSIT, 2021) should probably be (Department for Science, Innovation and Technology, 2021)
+- Corporate authors with multiple word names are defined between two sets of brackets in the Overleaf .bib file (e.g. author = {{Department for Science, Innovation and Technology}}, author = {{ Google Deepmind}} …).
+- Same rule for "et. al" in the .bib file (e.g. {{Slattery, et al.}})
+- Verify that all URLs used in references point to the correct source
+
+Numbers and dates:
+
+- Spell out numbers zero through one hundred
+- Spell out round numbers (two thousand, three million)
+- Use numerals for precise numbers over one hundred (101, 2,786)
+- Use numerals when mixing numbers in the same context (2 of the 150 participants)
+- Write dates in month-day-year format (September 15, 2024), with commas before and after the year if in running text
+
+Additional specific instructions:
+{instructions}
+
+For each issue you find, provide your suggestion in this exact format:
+(change "original text" -> "improved text")
+
+Only provide suggestions when there are actual improvements to be made, not if it is simply an author's stylistic choice. If a section is already well-written, don't suggest changes.
+
+{page_instructions}

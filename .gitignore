@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+
+# API Keys and Secrets
+.env
+*.env
+api_key.txt
+*_api_key*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Build files
+build/
+dist/
+*.spec
+*.exe
+*.app
+*.dmg
+
+# Cache and temporary files
+.review_cache/
+*.log
+*.tmp
+
+# User data
+review_results*.json
+review_results*.xlsx
+review_results*.docx
+review_results*.md
+*_review_*.json
+*_review_*.xlsx
+*_review_*.docx
+
+# Personal documents
+*.pdf
+*.docx
+*.doc
+!example_document.pdf  # If you want to include an example
+
+# Batch files with hardcoded keys
+run_reviewer_with_key.bat
