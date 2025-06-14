@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LLM Text Reviewer</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Input Screen -->
+        <div id="inputScreen" class="screen">
+            <div class="header">
+                <h2>LLM Text Reviewer</h2>
+            </div>
+            <div class="content">
+                <textarea id="textInput" placeholder="Paste your text here for feedback..." rows="8"></textarea>
+                <button id="getFeedbackBtn" class="primary-btn">Get Feedback</button>
+                <div id="loadingIndicator" class="loading hidden">
+                    <div class="spinner"></div>
+                    <span>Getting feedback...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Screen -->
+        <div id="feedbackScreen" class="screen hidden">
+            <div class="header">
+                <button id="backBtn" class="back-btn">← Back</button>
+                <h3>Feedback Results</h3>
+            </div>
+            <div class="content">
+                <div id="suggestionCounter" class="counter"></div>
+                <div id="feedbackTable" class="feedback-table">
+                    <div class="table-row header-row">
+                        <div class="cell rating-col">Rating</div>
+                        <div class="cell original-col">Original Text</div>
+                        <div class="cell feedback-col">Suggested Change</div>
+                    </div>
+                    <div id="suggestionRows"></div>
+                </div>
+                <div id="navigationControls" class="nav-controls">
+                    <button id="prevBtn" class="nav-btn">Previous</button>
+                    <span id="currentPage">1 / 1</span>
+                    <button id="nextBtn" class="nav-btn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

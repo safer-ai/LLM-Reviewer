@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "LLM Text Reviewer",
+  "version": "1.0",
+  "description": "Get feedback on your text using LLM API",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LLM Text Reviewer"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
