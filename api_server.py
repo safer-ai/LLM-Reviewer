@@ -14,6 +14,9 @@ import yaml
 import logging
 import re
 import google.generativeai as genai
+import asyncio
+import concurrent.futures
+import time
 
 # Add the current directory to Python path to import reviewer
 sys.path.insert(0, str(Path(__file__).parent))
@@ -26,33 +29,71 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GeminiClient:
-    def __init__(self, api_key=None, model="gemini-2.5-flash-preview-05-20"):
+    def __init__(self, api_key=None, fast_model="gemini-2.5-flash-preview-05-20", pro_model="gemini-2.5-pro-preview-06-05"):
         self.api_key = api_key or os.environ.get('GOOGLE_API_KEY')
         if not self.api_key:
             raise ValueError("Google API key is required. Set GOOGLE_API_KEY environment variable.")
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel(model)
-        self.model_name = model
+        self.fast_model = genai.GenerativeModel(fast_model)
+        self.pro_model = genai.GenerativeModel(pro_model)
+        self.fast_model_name = fast_model
+        self.pro_model_name = pro_model
     
-    def review_text_content(self, system_prompt, user_prompt):
+    def review_text_content(self, system_prompt, user_prompt, use_pro_model=False):
         """Get feedback from Gemini API."""
         try:
+            # Choose model based on importance
+            model = self.pro_model if use_pro_model else self.fast_model
+            model_name = self.pro_model_name if use_pro_model else self.fast_model_name
+            
             # Combine system and user prompts for Gemini
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
-            response = self.model.generate_content(full_prompt)
+            response = model.generate_content(full_prompt)
             
             return {
                 'response': response.text,
-                'model': self.model_name,
+                'model': model_name,
                 'error': None
             }
         except Exception as e:
             logger.error(f"Gemini API error: {str(e)}")
             return {
                 'response': '',
-                'model': self.model_name,
+                'model': self.pro_model_name if use_pro_model else self.fast_model_name,
+                'error': str(e)
+            }
+
+    def enhance_suggestion(self, original_text, improved_text, context=""):
+        """Use Pro model to enhance high-priority suggestions with better rewrites."""
+        try:
+            enhance_prompt = f"""You are an expert writing coach. A text improvement suggestion has been identified as high-priority. Please provide an enhanced rewrite that goes beyond the initial suggestion.
+
+Original text: "{original_text}"
+Current suggestion: "{improved_text}"
+Context: {context if context else "General text improvement"}
+
+Provide a superior rewrite that:
+1. Incorporates the spirit of the original suggestion
+2. Makes additional improvements for clarity, style, and impact
+3. Maintains the original meaning and tone
+4. Is significantly better than both the original and current suggestion
+
+Enhanced rewrite:"""
+
+            response = self.pro_model.generate_content(enhance_prompt)
+            
+            return {
+                'enhanced_text': response.text.strip(),
+                'model': self.pro_model_name,
+                'error': None
+            }
+        except Exception as e:
+            logger.error(f"Gemini Pro enhancement error: {str(e)}")
+            return {
+                'enhanced_text': improved_text,  # Fallback to original suggestion
+                'model': self.pro_model_name,
                 'error': str(e)
             }
 
@@ -132,12 +173,62 @@ class SimpleReviewFormatter:
         logger.info(f"Parsed {len(suggestions)} total suggestions, {len(filtered_suggestions)} with rating >= 4")
         return filtered_suggestions
 
+    def identify_high_priority_suggestions(self, suggestions):
+        """Identify suggestions with rating > 7 for Pro model enhancement."""
+        return [s for s in suggestions if s.get('rating', 0) > 7]
+
 def create_direct_reviewer():
     """Create Gemini-based reviewer components."""
     gemini_client = GeminiClient()
     review_formatter = SimpleReviewFormatter()
     
     return gemini_client, review_formatter
+
+def enhance_high_priority_suggestions(gemini_client, review_formatter, suggestions, original_text):
+    """Enhance suggestions with rating > 7 using the Pro model."""
+    if not suggestions:
+        return suggestions
+    
+    high_priority = review_formatter.identify_high_priority_suggestions(suggestions)
+    
+    if not high_priority:
+        logger.info("No high-priority suggestions found for Pro model enhancement")
+        return suggestions
+    
+    logger.info(f"Enhancing {len(high_priority)} high-priority suggestions with Pro model")
+    
+    enhanced_suggestions = []
+    for suggestion in suggestions:
+        if suggestion.get('rating', 0) > 7:
+            # Enhance with Pro model
+            try:
+                context = f"Part of larger text: {original_text[:200]}..." if len(original_text) > 200 else original_text
+                enhancement_result = gemini_client.enhance_suggestion(
+                    suggestion['original'], 
+                    suggestion['improved'], 
+                    context
+                )
+                
+                if not enhancement_result['error']:
+                    # Create enhanced suggestion
+                    enhanced_suggestion = suggestion.copy()
+                    enhanced_suggestion['improved'] = enhancement_result['enhanced_text']
+                    enhanced_suggestion['enhanced'] = True
+                    enhanced_suggestion['enhancement_model'] = enhancement_result['model']
+                    enhanced_suggestions.append(enhanced_suggestion)
+                    logger.info(f"Enhanced suggestion {suggestion.get('id', 'unknown')} with Pro model")
+                else:
+                    # Keep original on error
+                    enhanced_suggestions.append(suggestion)
+                    logger.warning(f"Failed to enhance suggestion {suggestion.get('id', 'unknown')}: {enhancement_result['error']}")
+            except Exception as e:
+                logger.error(f"Error enhancing suggestion {suggestion.get('id', 'unknown')}: {str(e)}")
+                enhanced_suggestions.append(suggestion)
+        else:
+            # Keep suggestion as-is for rating <= 7
+            enhanced_suggestions.append(suggestion)
+    
+    return enhanced_suggestions
 
 def chunk_text(text, chunk_size_words=500, overlap_words=50):
     """Simple text chunking function."""
@@ -175,6 +266,10 @@ def get_feedback():
         if not text:
             return jsonify({'error': 'Text cannot be empty'}), 400
         
+        # Get request ID for tracking
+        request_id = data.get('request_id', f'req_{int(time.time() * 1000)}')
+        logger.info(f"Processing request {request_id} with text length {len(text)}")
+        
         # Check if API key is available
         if not os.environ.get('GOOGLE_API_KEY'):
             return jsonify({'error': 'GOOGLE_API_KEY environment variable is required'}), 500
@@ -185,29 +280,22 @@ def get_feedback():
         # Process text directly
         logger.info(f"Processing text of {len(text)} characters")
         
-        # Create prompts for Gemini
-        system_prompt = """You are an expert text reviewer. Your task is to analyze the provided text and suggest specific improvements for clarity, grammar, style, and overall quality.
+        # Create optimized prompts for Gemini
+        system_prompt = """Expert text reviewer. Analyze text and suggest improvements for clarity, grammar, and style.
 
-Please provide your suggestions in the following format:
-- Use: (change "original text" -> "improved text" [rating: X]) for each suggestion
-- Include a rating from 1-10 indicating how much this change improves the text:
-  - 1-3: Minor improvements (typos, minor style tweaks)
-  - 4-6: Moderate improvements (clarity, readability enhancements)
-  - 7-10: Major improvements (significant clarity, grammar, or style fixes)
-- Focus on meaningful improvements that enhance readability and correctness
-- Be specific and actionable in your suggestions
-- Only suggest changes that genuinely improve the text"""
+Format: (change "original" -> "improved" [rating: X])
+Rating 1-10: 1-3=minor, 4-6=moderate, 7-10=major improvements
+Focus on: meaningful changes that enhance readability
+Be: specific and actionable"""
 
-        review_instructions = f"""Please review the following text for clarity, grammar, and style improvements:
+        review_instructions = f"""Review this text:
 
-Text to review:
 {text}
 
-Provide specific suggestions using the format: (change "original text" -> "improved text" [rating: X])
-Remember to rate each suggestion from 1-10 based on its impact on improving the text."""
+Format: (change "original" -> "improved" [rating: X])"""
         
-        # For shorter texts, process as single chunk
-        if len(text.split()) <= 500:
+        # For shorter texts, process as single chunk (increased threshold for speed)
+        if len(text.split()) <= 800:
             logger.info(f"Processing as single chunk ({len(text)} chars)")
             
             api_response = gemini_client.review_text_content(system_prompt, review_instructions)
@@ -222,29 +310,28 @@ Remember to rate each suggestion from 1-10 based on its impact on improving the 
             for sug_idx, sug in enumerate(all_suggestions):
                 sug['id'] = f"s{sug_idx+1}"
                 sug['chunk_index'] = 1
+            
+            # Enhance high-priority suggestions with Pro model
+            all_suggestions = enhance_high_priority_suggestions(gemini_client, review_formatter, all_suggestions, text)
         else:
-            # Chunk the text for longer content
-            text_chunks = chunk_text(text, chunk_size_words=500, overlap_words=50)
+            # Chunk the text for longer content and process concurrently
+            text_chunks = chunk_text(text, chunk_size_words=600, overlap_words=50)
             all_suggestions = []
             
-            for i, chunk in enumerate(text_chunks):
-                logger.info(f"Processing chunk {i+1}/{len(text_chunks)} ({len(chunk)} chars)")
-                
-                chunk_instructions = f"""Please review the following text chunk for clarity, grammar, and style improvements:
+            def process_chunk(chunk_data):
+                i, chunk = chunk_data
+                chunk_instructions = f"""Review this text:
 
-Text chunk to review:
 {chunk}
 
-Provide specific suggestions using the format: (change "original text" -> "improved text" [rating: X])
-Remember to rate each suggestion from 1-10 based on its impact on improving the text."""
+Format: (change "original" -> "improved" [rating: X])"""
                 
                 api_response = gemini_client.review_text_content(system_prompt, chunk_instructions)
                 
                 if api_response['error']:
                     logger.error(f"API error in chunk {i+1}: {api_response['error']}")
-                    continue
+                    return []
                 
-                # Parse suggestions
                 chunk_suggestions = review_formatter.parse_suggestions(api_response['response'])
                 
                 # Add chunk info to suggestions
@@ -252,7 +339,24 @@ Remember to rate each suggestion from 1-10 based on its impact on improving the 
                     sug['id'] = f"c{i+1}_s{sug_idx+1}"
                     sug['chunk_index'] = i+1
                 
-                all_suggestions.extend(chunk_suggestions)
+                return chunk_suggestions
+            
+            # Process chunks concurrently (max 3 at a time to avoid rate limits)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                chunk_data = list(enumerate(text_chunks))
+                logger.info(f"Processing {len(text_chunks)} chunks concurrently")
+                
+                futures = [executor.submit(process_chunk, chunk) for chunk in chunk_data]
+                
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        chunk_suggestions = future.result()
+                        all_suggestions.extend(chunk_suggestions)
+                    except Exception as e:
+                        logger.error(f"Error processing chunk: {e}")
+                
+                # Enhance high-priority suggestions with Pro model
+                all_suggestions = enhance_high_priority_suggestions(gemini_client, review_formatter, all_suggestions, text)
         
         response_data = {
             'suggestions': all_suggestions,
@@ -260,7 +364,7 @@ Remember to rate each suggestion from 1-10 based on its impact on improving the 
             'status': 'success'
         }
         
-        logger.info(f"Found {len(all_suggestions)} suggestions")
+        logger.info(f"Request {request_id} completed: {len(all_suggestions)} suggestions")
         return jsonify(response_data)
         
     except Exception as e:

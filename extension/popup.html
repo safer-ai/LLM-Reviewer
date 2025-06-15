@@ -14,8 +14,11 @@
                 <h2>LLM Text Reviewer</h2>
             </div>
             <div class="content">
-                <textarea id="textInput" placeholder="Paste your text here for feedback..." rows="8"></textarea>
-                <button id="getFeedbackBtn" class="primary-btn">Get Feedback</button>
+                <div id="textInput" class="rich-text-input" contenteditable="true" data-placeholder="Paste your text here for feedback..."></div>
+                <div class="button-group">
+                    <button id="getFeedbackBtn" class="primary-btn">Get Feedback</button>
+                    <button id="seeSuggestionsBtn" class="secondary-btn hidden">See Suggestions</button>
+                </div>
                 <div id="loadingIndicator" class="loading hidden">
                     <div class="spinner"></div>
                     <span>Getting feedback...</span>
@@ -26,8 +29,11 @@
         <!-- Feedback Screen -->
         <div id="feedbackScreen" class="screen hidden">
             <div class="header">
-                <button id="backBtn" class="back-btn">← Back</button>
-                <h3>Feedback Results</h3>
+                <div class="header-left">
+                    <button id="backBtn" class="back-btn">← Back</button>
+                    <h3>Feedback Results</h3>
+                </div>
+                <button id="clearAllBtn" class="clear-all-btn">Clear All</button>
             </div>
             <div class="content">
                 <div id="suggestionCounter" class="counter"></div>
@@ -36,6 +42,7 @@
                         <div class="cell rating-col">Rating</div>
                         <div class="cell original-col">Original Text</div>
                         <div class="cell feedback-col">Suggested Change</div>
+                        <div class="cell action-col">Action</div>
                     </div>
                     <div id="suggestionRows"></div>
                 </div>

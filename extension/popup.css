@@ -35,6 +35,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    justify-content: space-between;
 }
 
 .header h2, .header h3 {
@@ -57,6 +58,21 @@ body {
     background-color: #f8f9fa;
 }
 
+.clear-all-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clear-all-btn:hover {
+    background-color: #c82333;
+}
+
 .content {
     flex: 1;
     padding: 16px;
@@ -65,20 +81,71 @@ body {
     gap: 16px;
 }
 
-#textInput {
+.rich-text-input {
     width: 100%;
+    min-height: 120px;
+    max-height: 300px;
     padding: 12px;
     border: 2px solid #e9ecef;
     border-radius: 8px;
     font-family: inherit;
     font-size: 14px;
-    resize: vertical;
-    min-height: 120px;
+    line-height: 1.5;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: white;
 }
 
-#textInput:focus {
+.rich-text-input:focus {
     outline: none;
     border-color: #007bff;
+}
+
+.rich-text-input:empty::before {
+    content: attr(data-placeholder);
+    color: #6c757d;
+    font-style: italic;
+}
+
+.rich-text-input:focus:empty::before {
+    display: none;
+}
+
+/* Preserve formatting from Google Docs */
+.rich-text-input p {
+    margin: 0 0 1em 0;
+}
+
+.rich-text-input p:last-child {
+    margin-bottom: 0;
+}
+
+.rich-text-input strong, .rich-text-input b {
+    font-weight: bold;
+}
+
+.rich-text-input em, .rich-text-input i {
+    font-style: italic;
+}
+
+.rich-text-input u {
+    text-decoration: underline;
+}
+
+.rich-text-input ul, .rich-text-input ol {
+    margin: 0 0 1em 0;
+    padding-left: 20px;
+}
+
+.rich-text-input li {
+    margin-bottom: 0.25em;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 .primary-btn {
@@ -91,6 +158,7 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s;
+    flex: 1;
 }
 
 .primary-btn:hover {
@@ -100,6 +168,27 @@ body {
 .primary-btn:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
+}
+
+.secondary-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    flex: 0 0 auto;
+}
+
+.secondary-btn:hover {
+    background-color: #5a6268;
+}
+
+.secondary-btn.hidden {
+    display: none;
 }
 
 .loading {
@@ -178,11 +267,44 @@ body {
 .original-col {
     flex: 1;
     background-color: #fff5f5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .feedback-col {
     flex: 1;
     background-color: #f0f8ff;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Preserve formatting in suggestion cells */
+.original-col p, .feedback-col p {
+    margin: 0 0 0.5em 0;
+}
+
+.original-col p:last-child, .feedback-col p:last-child {
+    margin-bottom: 0;
+}
+
+.original-col strong, .original-col b,
+.feedback-col strong, .feedback-col b {
+    font-weight: bold;
+}
+
+.original-col em, .original-col i,
+.feedback-col em, .feedback-col i {
+    font-style: italic;
+}
+
+.original-col u, .feedback-col u {
+    text-decoration: underline;
+}
+
+.action-col {
+    flex: 0 0 80px;
+    text-align: center;
+    background-color: #f8f9fa;
 }
 
 .rating-badge {
@@ -205,6 +327,42 @@ body {
 
 .rating-low {
     background-color: #6c757d;
+}
+
+.enhanced-suggestion {
+    position: relative;
+}
+
+.enhanced-suggestion::before {
+    content: "✨ Pro Enhanced";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(45deg, #8a2be2, #4b0082);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.enhanced-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(45deg, #8a2be2, #4b0082);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.enhanced-badge::before {
+    content: "✨";
 }
 
 .nav-controls {
@@ -238,4 +396,30 @@ body {
     font-size: 14px;
     color: #6c757d;
     font-weight: 500;
+}
+
+.done-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.done-btn:hover {
+    background-color: #218838;
+}
+
+.suggestion-completed {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
