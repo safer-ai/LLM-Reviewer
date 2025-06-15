@@ -38,15 +38,13 @@ class ExtensionApp {
             this.updateQueueStatus();
         });
 
-        // Handle paste events to preserve formatting
+        // Handle paste events - use plain text only
         textInput.addEventListener('paste', (e) => {
             e.preventDefault();
-            const paste = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
+            const paste = e.clipboardData.getData('text/plain');
             
             if (paste) {
-                // Clean up the HTML but preserve basic formatting
-                const cleanHtml = this.cleanPastedHTML(paste);
-                document.execCommand('insertHTML', false, cleanHtml);
+                document.execCommand('insertText', false, paste);
                 this.updateQueueStatus();
             }
         });
@@ -417,49 +415,6 @@ class ExtensionApp {
         return textInput.innerHTML || '';
     }
 
-    cleanPastedHTML(html) {
-        // Create a temporary div to parse HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Remove unwanted elements and attributes
-        const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li'];
-        const walker = document.createTreeWalker(
-            tempDiv,
-            NodeFilter.SHOW_ELEMENT,
-            {
-                acceptNode: function(node) {
-                    return allowedTags.includes(node.tagName.toLowerCase()) ? 
-                        NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-                }
-            }
-        );
-
-        const allowedElements = [];
-        let node;
-        while (node = walker.nextNode()) {
-            allowedElements.push(node);
-        }
-
-        // Remove all non-allowed elements
-        const allElements = tempDiv.querySelectorAll('*');
-        allElements.forEach(el => {
-            if (!allowedTags.includes(el.tagName.toLowerCase())) {
-                // Replace with text content
-                const textNode = document.createTextNode(el.textContent);
-                el.parentNode.replaceChild(textNode, el);
-            } else {
-                // Clean attributes
-                Array.from(el.attributes).forEach(attr => {
-                    if (!['class'].includes(attr.name)) {
-                        el.removeAttribute(attr.name);
-                    }
-                });
-            }
-        });
-        
-        return tempDiv.innerHTML;
-    }
 
     formatTextForDisplay(text) {
         // Convert plain text line breaks to HTML line breaks
