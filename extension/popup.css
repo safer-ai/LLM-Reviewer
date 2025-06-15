@@ -112,6 +112,31 @@ body {
     display: none;
 }
 
+/* Preserve formatting except bold */
+.rich-text-input p {
+    margin: 0 0 1em 0;
+}
+
+.rich-text-input p:last-child {
+    margin-bottom: 0;
+}
+
+.rich-text-input em, .rich-text-input i {
+    font-style: italic;
+}
+
+.rich-text-input u {
+    text-decoration: underline;
+}
+
+.rich-text-input ul, .rich-text-input ol {
+    margin: 0 0 1em 0;
+    padding-left: 20px;
+}
+
+.rich-text-input li {
+    margin-bottom: 0.25em;
+}
 
 .button-group {
     display: flex;
@@ -249,11 +274,43 @@ body {
     word-wrap: break-word;
 }
 
+/* Preserve formatting in suggestion cells except bold */
+.original-col p, .feedback-col p {
+    margin: 0 0 0.5em 0;
+}
+
+.original-col p:last-child, .feedback-col p:last-child {
+    margin-bottom: 0;
+}
+
+.original-col em, .original-col i,
+.feedback-col em, .feedback-col i {
+    font-style: italic;
+}
+
+.original-col u, .feedback-col u {
+    text-decoration: underline;
+}
+
+.original-col ul, .original-col ol,
+.feedback-col ul, .feedback-col ol {
+    margin: 0 0 0.5em 0;
+    padding-left: 20px;
+}
+
+.original-col li, .feedback-col li {
+    margin-bottom: 0.25em;
+}
 
 .action-col {
-    flex: 0 0 80px;
+    flex: 0 0 100px;
     text-align: center;
     background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+    padding: 8px 4px;
 }
 
 .rating-badge {
@@ -347,6 +404,25 @@ body {
     font-weight: 500;
 }
 
+.copy-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-btn:hover {
+    background-color: #0056b3;
+}
+
 .done-btn {
     background-color: #28a745;
     color: white;
@@ -356,6 +432,7 @@ body {
     font-size: 11px;
     cursor: pointer;
     transition: background-color 0.2s;
+    min-height: 24px;
 }
 
 .done-btn:hover {

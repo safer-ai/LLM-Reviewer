@@ -38,13 +38,14 @@ class ExtensionApp {
             this.updateQueueStatus();
         });
 
-        // Handle paste events - use plain text only
+        // Handle paste events - preserve formatting except bold
         textInput.addEventListener('paste', (e) => {
             e.preventDefault();
-            const paste = e.clipboardData.getData('text/plain');
+            const paste = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
             
             if (paste) {
-                document.execCommand('insertText', false, paste);
+                const cleanHtml = this.cleanPastedHTML(paste);
+                document.execCommand('insertHTML', false, cleanHtml);
                 this.updateQueueStatus();
             }
         });
@@ -239,11 +240,18 @@ class ExtensionApp {
             const actionCell = document.createElement('div');
             actionCell.className = 'cell action-col';
             
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-btn';
+            copyBtn.innerHTML = '📋';
+            copyBtn.title = 'Copy improved text';
+            copyBtn.addEventListener('click', () => this.copyToClipboard(suggestion.improved));
+            
             const doneBtn = document.createElement('button');
             doneBtn.className = 'done-btn';
             doneBtn.textContent = "I'm done";
             doneBtn.addEventListener('click', () => this.markSuggestionDone(globalIndex));
             
+            actionCell.appendChild(copyBtn);
             actionCell.appendChild(doneBtn);
             row.appendChild(ratingCell);
             row.appendChild(originalCell);
@@ -415,6 +423,92 @@ class ExtensionApp {
         return textInput.innerHTML || '';
     }
 
+    cleanPastedHTML(html) {
+        // Create a temporary div to parse HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Remove unwanted elements
+        const unwantedElements = tempDiv.querySelectorAll('script, style, meta, link, title, head');
+        unwantedElements.forEach(el => el.remove());
+        
+        // Remove all bold elements but keep their content
+        const boldElements = tempDiv.querySelectorAll('strong, b, [style*="font-weight"]');
+        boldElements.forEach(el => {
+            const parent = el.parentNode;
+            while (el.firstChild) {
+                parent.insertBefore(el.firstChild, el);
+            }
+            parent.removeChild(el);
+        });
+        
+        // Clean up remaining elements
+        const allowedTags = ['p', 'br', 'em', 'i', 'u', 'ul', 'ol', 'li', 'div', 'span'];
+        const allElements = tempDiv.querySelectorAll('*');
+        
+        allElements.forEach(el => {
+            const tagName = el.tagName.toLowerCase();
+            
+            if (!allowedTags.includes(tagName)) {
+                // Replace unwanted elements with their content
+                const parent = el.parentNode;
+                while (el.firstChild) {
+                    parent.insertBefore(el.firstChild, el);
+                }
+                parent.removeChild(el);
+            } else {
+                // Clean attributes
+                Array.from(el.attributes).forEach(attr => {
+                    if (!['class', 'style'].includes(attr.name)) {
+                        el.removeAttribute(attr.name);
+                    }
+                });
+                
+                // Clean style attributes - remove bold styles
+                if (el.hasAttribute('style')) {
+                    const style = el.getAttribute('style');
+                    const allowedStyles = [];
+                    
+                    if (style.includes('font-style:') && style.includes('italic')) {
+                        allowedStyles.push('font-style: italic');
+                    }
+                    if (style.includes('text-decoration:') && style.includes('underline')) {
+                        allowedStyles.push('text-decoration: underline');
+                    }
+                    
+                    if (allowedStyles.length > 0) {
+                        el.setAttribute('style', allowedStyles.join('; '));
+                    } else {
+                        el.removeAttribute('style');
+                    }
+                }
+            }
+        });
+        
+        return tempDiv.innerHTML;
+    }
+
+    async copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            // Brief visual feedback
+            const copyBtns = document.querySelectorAll('.copy-btn');
+            copyBtns.forEach(btn => {
+                if (btn.title === 'Copy improved text') {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✓';
+                    btn.style.color = '#28a745';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.color = '';
+                    }, 1000);
+                }
+            });
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy to clipboard');
+        }
+    }
 
     formatTextForDisplay(text) {
         // Convert plain text line breaks to HTML line breaks
